@@ -1,108 +1,68 @@
 import os
 import sys
-import glob
-import psutil
 import whisper
 import argparse
 import textwrap
 
-
-def choose_model_by_ram():
-    ram_gb = psutil.virtual_memory().total / (1024 ** 3)
-    print(f"🔍 ОЗУ: {ram_gb:.1f} GB")
-    if ram_gb >= 16:
-        return "large"
-    elif ram_gb >= 8:
-        return "medium"
-    elif ram_gb >= 4:
-        return "small"
-    elif ram_gb >= 2:
-        return "base"
-    else:
-        return "tiny"
-
-
-def find_audio_file():
-    matches = glob.glob("data/audio.*")
-    if len(matches) == 0:
-        print("❌ Файл audio.* не найден в папке data/\n")
-        sys.exit(1)
-    elif len(matches) > 1:
-        print("❌ Найдено несколько файлов audio.* в папке data/. Удалите лишние.\n")
-        for f in matches:
-            print(" -", f)
-        sys.exit(1)
-    return matches[0]
-
-
-def print_manual():
-    print(textwrap.dedent("""
-    ─────────────────────────────────────────────────────────────
-    🎙️ Распознавание речи из аудиофайлов с помощью Whisper
-
-    📌 Параметры:
-      --file     Путь к аудиофайлу (по умолчанию: data/audio.*)
-      --model    Модель Whisper: tiny, base, small, medium, large
-                 (по умолчанию определяется автоматически по объёму ОЗУ)
-      --lang     Язык речи: ru, en, de, fr, es, it, ja, uk и др.
-                 (по умолчанию: ru)
-
-    📌 Примеры:
-      python main.py
-      python main.py --file data/audio.m4a
-      python main.py --file data/audio.mp3 --model medium --lang en
-
-    ⚠ Поддерживаемые форматы: wav, mp3, m4a и др.
-    💾 Результат сохраняется в output.txt
-    ─────────────────────────────────────────────────────────────
-    """))
-
-
-def print_summary(text, max_lines=5, tail_lines=2):
-    lines = text.strip().splitlines()
-    total = len(lines)
-    if total <= max_lines + tail_lines:
-        print(text)
-    else:
-        print("🔹 Начало текста:")
-        print("\n".join(lines[:max_lines]))
-        print("...\n🔹 Конец текста:")
-        print("\n".join(lines[-tail_lines:]))
+from config import UI_LANG, translations, help_ui
+from utils import (
+    check_args,
+    print_supported_languages,
+    choose_model_by_ram,
+    find_audio_file,
+    print_summary,
+)
 
 
 def main():
-    print_manual()
 
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--file", help="Путь к аудиофайлу (по умолчанию: data/audio.*)")
-    parser.add_argument("--model", choices=["tiny", "base", "small", "medium", "large"], help="Модель Whisper")
-    parser.add_argument("--lang", default="ru", help="Язык речи (например: ru, en, de, fr, es, it, ja, uk)")
+    parser.add_argument("--help", action="store_true", help="Show list of supported languages and exit.")
+    parser.add_argument("--quiet", action="store_true", help="Quiet mode (without welcome screen).")
+    parser.add_argument("--file", help="Path to the audio file (default: data/audio.*).")
+    parser.add_argument("--model", choices=["tiny", "base", "small", "medium", "large"],
+                        help="Whisper model to use (automatically selected by RAM if not specified).")
+    parser.add_argument("--lang", default="en",
+                        help=f"Spoken language in the audio (use --help for code reference).")
+    parser.add_argument("--ui-lang", default="en", help=f"Interface language: {help_ui} (default: en).")
 
     args = parser.parse_args()
 
-    audio_path = args.file or find_audio_file()
-    model_name = args.model or choose_model_by_ram()
-    language = args.lang
+    if args.help:
+        print_supported_languages()
+        sys.exit(0)
 
-    if not os.path.isfile(audio_path):
-        print(f"❌ Файл не найден: {audio_path}")
+    ui = translations.get(args.ui_lang)
+    if not ui:
+        print(f"Interface language is not recognized. Options are : {UI_LANG}")
         sys.exit(1)
 
-    print(f"📦 Загружается модель: {model_name}")
+    check_args(args.help, args.lang)
+
+    if not args.quiet:
+        print(textwrap.dedent(ui.manual))
+
+    model_name = args.model or choose_model_by_ram(ui)
+    print(ui.loading_model.format(model=model_name))
+
+    audio_path = args.file or find_audio_file(ui)
+    if not os.path.isfile(audio_path):
+        print(ui.no_file, audio_path)
+        sys.exit(1)
+
     model = whisper.load_model(model_name)
 
-    print(f"🎧 Распознаётся: {audio_path} (язык: {language})")
-    result = model.transcribe(audio_path, language=language, fp16=False)
-
-    text = result["text"]
-
-    print("\n📝 Распознанный текст (обзор):")
-    print_summary(text)
-
-    with open("output.txt", "w", encoding="utf-8") as f:
-        f.write(text)
-
-    print("\n💾 Полный текст сохранён в output.txt\n")
+    print(ui.processing.format(file=audio_path, lang=args.lang))
+    try:
+        result = model.transcribe(audio_path, language=args.lang, fp16=False)
+        text = result["text"]
+        print_summary(ui, text)
+        with open("output.txt", "w", encoding="utf-8") as f:
+            f.write(text)
+        print(ui.text_saved)
+    except Exception as e:
+        error = str(e).splitlines()[0]
+        print(ui.processing_error.format(error=error))
 
 
 if __name__ == "__main__":

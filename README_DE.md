@@ -1,12 +1,12 @@
-# 🌍 Available Languages
+# 🌍 Verfügbare Sprachen
 
 🇬🇧 [English](README.md) | 🇨🇳 [Chinese](README_ZH.md) | 🇪🇸 [Spanish](README_ES.md) | 🇩🇪 [German](README_DE.md) | 🇫🇷 [French](README_FR.md) | 🇮🇹 [Italian](README_IT.md) | 🇵🇹 [Portuguese](README_PT.md) | 🇷🇺 [Russian](README_RU.md) | 🇰🇷 [Korean](README_KO.md) | 🇯🇵 [Japanese](README_JA.md)
 
 ---
-# 🧠 Whisper Speech-to-Text (Offline)
+# 🧠 Whisper Sprache-zu-Text (Offline)
 
-A Python script for automatic **speech recognition from audio files** using the [Whisper](https://github.com/openai/whisper) model.  
-After download and setup, transcription is performed **locally** on your computer without sending data to any server.
+Ein Python-Skript zur automatischen **Spracherkennung aus Audiodateien** mit dem Modell [Whisper](https://github.com/openai/whisper).  
+Nach dem Herunterladen und Einrichten wird die Transkription **lokal** auf Ihrem Computer durchgeführt, ohne Daten an einen Server zu senden.
 
 - Recognizes speech in 100+ languages.  
   To list languages, run the script with `--help`.
@@ -18,13 +18,13 @@ After download and setup, transcription is performed **locally** on your compute
 - Provide an audio file via `--file`. Supported formats: `.wav`, `.mp3`, `.m4a`, `.ogg`, etc.  
 - Prints a short preview and saves the full text to `output.txt`.
 
-**⚠ Important:**  
-On first use of a selected Whisper model, it will be **downloaded from the internet** automatically.  
-Model sizes are large — from ~150MB (`tiny`) up to ~3GB (`large`). Ensure a stable connection and enough disk space.
+**⚠ Wichtig:**  
+Beim ersten Verwenden eines ausgewählten Whisper-Modells wird es automatisch **aus dem Internet heruntergeladen**.  
+Model sizes are large — from ~150MB (`tiny`) up to ~3GB (`large`). Stellen Sie eine stabile Internetverbindung und ausreichend Speicherplatz sicher.
 
 ---
 
-## 🖥️ System Requirements
+## 🖥️ Systemanforderungen
 - OS: Windows 10/11, Ubuntu 20.04+, macOS 11+  
 - RAM: 4GB minimum (16GB recommended for `large`)  
 - Disk space: ~6GB free  
@@ -32,7 +32,7 @@ Model sizes are large — from ~150MB (`tiny`) up to ~3GB (`large`). Ensure a st
 
 📦 After downloading once, the model works entirely offline.
 
-## ✅ Requirements
+## ✅ Voraussetzungen
 - **Python** 3.10  
 - **ffmpeg** (audio decoding)  
 - **git** (repository cloning)
@@ -100,7 +100,7 @@ pip install -r requirements.txt
 
 ---
 
-## 🚀 Usage
+## 🚀 Verwendung
 
 1. Put `audio.mp3` into the `data/` folder.  
 2. Run:
@@ -113,7 +113,7 @@ On first run of a given model, it will be downloaded automatically.
 
 ---
 
-## 💡 Examples
+## 💡 Beispiele
 
 Run with `medium` model on English (default) with English UI (default):
 ```bash
@@ -125,17 +125,17 @@ python main.py --quiet --file data/audio.mp3 --model medium --lang ko --ui-lang 
 ```
 ---
 
-## 📄 Output
+## 📄 Ausgabe
 
 📝 Preview of recognized text, full transcription saved to `output.txt`.
 
 ---
 
-## ⚠ Notes
+## ⚠ Hinweise
 - Model `large` requires 16+GB RAM.  
 - For long audio, prefer at least `medium` model (or split the file with ffmpeg).
 
 ---
 
-## 📚 License
+## 📚 Lizenz
 MIT. Uses components of OpenAI [Whisper](https://github.com/openai/whisper).
